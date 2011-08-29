@@ -64,6 +64,7 @@ public class SnzInputStream extends FilterInputStream {
 
 	/**
 	 * Reads a single byte from the uncompressed stream.
+	 * @throws FormatViolationException if the input data is invalid
 	 * @return the read byte or -1 if end of stream is reached
 	 */
 	@Override
@@ -95,6 +96,7 @@ public class SnzInputStream extends FilterInputStream {
 
 	/**
 	 * Fills the byte array with data from the uncompressed stream.
+	 * @throws FormatViolationException if the input data is invalid
 	 * @return the number of bytes read or -1 if end of stream is reached
 	 */
 	@Override
@@ -109,6 +111,7 @@ public class SnzInputStream extends FilterInputStream {
 	 * @param b destination array
 	 * @param offset offset into the byte array, on which the data is written
 	 * @length maximum number of bytes to write into the byte array
+	 * @throws FormatViolationException if the input data is invalid
 	 * @return the number of bytes read or -1 if end of stream is reached
 	 */
 	@Override
@@ -153,8 +156,11 @@ public class SnzInputStream extends FilterInputStream {
 			char c2 = (char) super.read();
 			char c3 = (char) super.read();
 			int v = super.read();
-			if(c1 != 'S' || c2 != 'N' || c3 != 'Z' || v != 1) {
-				throw new IOException("Illegal prefix in SNZ file");
+			if(c1 != 'S' || c2 != 'N' || c3 != 'Z') {
+				throw new FormatViolationException("Illegal prefix in SNZ stream");
+			}
+			if(v != 1) {
+				throw new FormatViolationException("Illegal SNZ version: " + v + " (only 1 is supported)", 1);
 			}
 			blockSize = 1 << super.read();
 		}

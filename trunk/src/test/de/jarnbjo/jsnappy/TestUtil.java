@@ -45,7 +45,7 @@ public class TestUtil {
 	}
 	
 	public static void pipe(InputStream is, OutputStream os) throws IOException {
-		byte[] buffer = new byte[8192];
+		byte[] buffer = new byte[65536];
 		int r = 0;
 		while((r=is.read(buffer))>=0) {
 			os.write(buffer, 0, r);

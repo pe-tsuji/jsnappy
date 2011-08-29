@@ -87,9 +87,10 @@ public class SnappyDecompressor {
 	 * @param offset
 	 * @param length
 	 * @param out
+	 * @throws FormatViolationException if the input data is invalid
 	 * @return
 	 */
-	public static Buffer decompress(byte[] in, int offset, int length, Buffer out) {
+	public static Buffer decompress(byte[] in, int offset, int length, Buffer out) throws FormatViolationException {
 
 		int i=0, l, o, c;
 		int sourceIndex = offset, targetIndex = 0;
@@ -111,6 +112,11 @@ public class SnappyDecompressor {
 		byte[] outBuffer = out.getData();
 
 		while(sourceIndex < offset + length) {
+			
+			if(targetIndex >= targetLength) {
+				throw new FormatViolationException("Superfluous input data encountered on offset " + sourceIndex, sourceIndex);
+			}
+			
 			switch(in[sourceIndex] & 3) {
 			case 0:
 				l = (in[sourceIndex++] >> 2) & 0x3f;
