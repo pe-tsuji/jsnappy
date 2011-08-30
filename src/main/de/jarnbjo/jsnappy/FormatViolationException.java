@@ -3,7 +3,7 @@ package de.jarnbjo.jsnappy;
 /**
  * Exception thrown by the decompressor if it encounters illegal input data. 
  * 
- * @author tor
+ * @author Tor-Einar Jarnbjo
  * @since 1.0
  */
 public class FormatViolationException extends IllegalArgumentException {

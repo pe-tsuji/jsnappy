@@ -74,4 +74,25 @@ class IntListHashMap {
 
 	}
 
+	int getFirstHit(int key, int maxValue) {		
+		int bucket = key % buckets;
+		if(bucket < 0) {
+			bucket = -bucket;
+		}
+		int[] data = content[bucket];
+
+		if(data == null) {
+			return -1;
+		}
+		else {
+			int offset = data[0] * 2 - 1;
+			while(offset > 0) {
+				if(data[offset] == key && data[offset+1] <= maxValue) {
+					return data[offset+1];
+				}
+				offset -= 2;
+			}
+		}
+		return -1;
+	}
 }

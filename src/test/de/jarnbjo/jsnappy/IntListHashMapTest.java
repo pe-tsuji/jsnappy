@@ -121,4 +121,28 @@ public class IntListHashMapTest {
 		assertFalse(ii.next());
 	}
 
+	@Test
+	public void testFirstHit1() {		
+		IntListHashMap m = new IntListHashMap(10);
+		m.put(1, 1);
+		m.put(1, 2);		
+		assertEquals(2, m.getFirstHit(1, Integer.MAX_VALUE));		
+	}
+	
+	@Test
+	public void testFirstHit2() {		
+		IntListHashMap m = new IntListHashMap(10);
+		m.put(1, 1);
+		m.put(1, 2);		
+		m.put(11, 3);		
+		assertEquals(2, m.getFirstHit(1, Integer.MAX_VALUE));		
+	}
+	
+	public void testNoHit() {
+		IntListHashMap m = new IntListHashMap(2);
+		m.put(0, 1);
+		m.put(1, 1);		
+		assertEquals(-1, m.getFirstHit(2, Integer.MAX_VALUE));				
+	}
+
 }
