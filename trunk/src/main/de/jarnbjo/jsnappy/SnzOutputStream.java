@@ -49,6 +49,8 @@ public class SnzOutputStream extends OutputStream {
 
 	private boolean closed = false;
 
+	private int effort = SnappyCompressor.DEFAULT_EFFORT;
+	
 	/**
 	 * Creates a new compressing output stream with the default buffer size.
 	 * @param out target output stream
@@ -81,8 +83,6 @@ public class SnzOutputStream extends OutputStream {
 			bufferSize >>= 1;
 		}
 
-		System.out.println(bufferSize2);
-		
 		this.buffer = new byte[this.bufferSize];
 		cbuffer = new Buffer(this.bufferSize * 6 / 5);
 		
@@ -136,12 +136,34 @@ public class SnzOutputStream extends OutputStream {
 
 	}
 
+	/**
+	 * Returns the compression effort used by this stream. The effort
+	 * defaults to 1 (fastest, less compression).
+	 * 
+	 * @return
+	 */
+	public int getCompressionEffort() {
+		return effort;
+	}
+	
+	/**
+	 * Sets the compression effort used by this stream from 1 (fastest, less
+	 * compression) to 100 (slowest, best compression). If the effort is 
+	 * changed after the stream has been written to, the new effort will take
+	 * effect on the next packet processed internally and may so affect
+	 * data already written to the stream.
+	 * 
+	 * @param effort
+	 */
+	public void setCompressionEffort(int effort) {
+		this.effort = effort;
+	}
+	
 	private void flushBuffer() throws IOException {
 		if(bufferIndex > 0) {
-			SnappyCompressor.compress(buffer, 0, bufferIndex, cbuffer);
+			SnappyCompressor.compress(buffer, 0, bufferIndex, cbuffer, effort);
 			bufferIndex = 0;
 			int l = cbuffer.getLength();
-			//System.out.println(comp.getLength());
 			while(l>0) {
 				delegate.write(l >= 128 ? 0x80 | (l&0x7f) : l);
 				l >>= 7;

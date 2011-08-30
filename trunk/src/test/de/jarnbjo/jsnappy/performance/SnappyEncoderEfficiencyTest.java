@@ -14,17 +14,12 @@
  *  limitations under the License.
  */
 
-package de.jarnbjo.jsnappy.withdata;
+package de.jarnbjo.jsnappy.performance;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
 
-import org.junit.AfterClass;
 import org.junit.Assert;
-import org.junit.BeforeClass;
-import org.junit.Test;
 
 import de.jarnbjo.jsnappy.SnzOutputStream;
 import de.jarnbjo.jsnappy.TestUtil;
@@ -32,13 +27,12 @@ import de.jarnbjo.jsnappy.TestUtil;
 /**
  * Place test files in the resources/testdata directory  
  */
-public class SnzOutputStreamTest {
+public class SnappyEncoderEfficiencyTest {
 
 	private static String snzipExecutable;
 	private static File testdataDirectory;
 	
-	@BeforeClass
-	public static void init() {
+	public static void main(String[] args) throws Exception {
 		snzipExecutable = TestUtil.findSnzipExecutable();
 		if(snzipExecutable == null) {
 			throw new IllegalStateException("No executable snzip file found in bin directory");
@@ -51,64 +45,59 @@ public class SnzOutputStreamTest {
 		}
 
 		TestUtil.deleteRecursive(new File("tmp"));
-	}
-	
-	@AfterClass
-	public static void cleanup() {
-		TestUtil.deleteRecursive(new File("tmp"));
-	}
-	
-	@Test
-	public void testSnzOutputStream_001() throws IOException, InterruptedException {
-		testInternal(1);
-	}
-	
-	@Test
-	public void testSnzOutputStream_050() throws IOException, InterruptedException {
-		testInternal(50);
-	}
 
-	@Test
-	public void testSnzOutputStream_100() throws IOException, InterruptedException {
-		testInternal(100);
-	}
-
-	public void testInternal(int effort) throws IOException, InterruptedException {
-
-		File tmpDirectory = TestUtil.directoriesToFile("tmp", "SnzOutputStreamTest");
-		tmpDirectory.mkdirs();
+		File tmpDirectory = TestUtil.directoriesToFile("tmp", "SnappyEncoderEfficiencyTest");
 		
-		for(File org : testdataDirectory.listFiles()) {
-			if(org.isFile()) {
-				System.out.println("compressing " + org.getName());				
-				SnzOutputStream sos = new SnzOutputStream(new FileOutputStream(new File(tmpDirectory, org.getName() + ".snz")));
-				sos.setCompressionEffort(effort);
-				FileInputStream fis = new FileInputStream(org);
-				TestUtil.pipe(fis, sos);
-				fis.close();
-				sos.close();
-			}
-		}
+		TestUtil.copyRecursive(testdataDirectory, tmpDirectory);
 		
-		ProcessBuilder pb = new ProcessBuilder(snzipExecutable, "-d", "*");
+		ProcessBuilder pb = new ProcessBuilder(snzipExecutable, "*");
 		pb.directory(tmpDirectory);
 		pb.redirectErrorStream(true);
 		Process p = pb.start();
-		TestUtil.pipe(p.getInputStream(), System.out);
+
+		TestUtil.pipe(p.getInputStream(),  System.out);
 		int snzReturnCode = p.waitFor();
 		if(snzReturnCode != 0) {
 			Assert.fail("snzip exited with return code " + snzReturnCode);
 		}
 		
+		System.out.println();
+		System.out.println();
+		
 		for(File org : testdataDirectory.listFiles()) {
 			if(org.isFile()) {
-				System.out.println("comparing " + org.getName());
+				// System.out.println("comparing " + org.getName());
 				byte[] originalData = TestUtil.readFully(org);
-				byte[] processedData = TestUtil.readFully(new File(tmpDirectory, org.getName()));
-				Assert.assertArrayEquals(originalData, processedData);
+
+				int nativeLength = (int)new File(tmpDirectory, org.getName() + ".snz").length();
+				double nativeSize = 100. * nativeLength / originalData.length;
+
+				ByteArrayOutputStream jsnappyData = new ByteArrayOutputStream();
+				SnzOutputStream sos = new SnzOutputStream(jsnappyData);
+				sos.setCompressionEffort(1);
+				sos.write(originalData);
+				sos.close();
+				double javaSize1 = 100. * jsnappyData.toByteArray().length / originalData.length;
+				
+				jsnappyData = new ByteArrayOutputStream();
+				sos = new SnzOutputStream(jsnappyData);
+				sos.setCompressionEffort(50);
+				sos.write(originalData);
+				sos.close();
+				double javaSize50 = 100. * jsnappyData.toByteArray().length / originalData.length;
+				
+				jsnappyData = new ByteArrayOutputStream();
+				sos = new SnzOutputStream(jsnappyData);
+				sos.setCompressionEffort(100);
+				sos.write(originalData);
+				sos.close();
+				double javaSize100 = 100. * jsnappyData.toByteArray().length / originalData.length;
+
+				System.out.printf("%s: native: %.1f%%, Java: %.1f%% - %.1f%% - %.1f%% %n", org.getName(), nativeSize, javaSize1, javaSize50, javaSize100);
 			}
 		}
-
 	}
+	
+
 	
 }

@@ -19,11 +19,11 @@
 	</target>
 
 	<target name="compile-main" depends="prepare">
-		<javac srcdir="src/main" destdir="build/classes/main" classpath="lib/bcel-5.2.jar" debug="true"/>
+		<javac srcdir="src/main" destdir="build/classes/main" source="1.5" target="1.5"/>
 	</target>
 
 	<target name="compile-test" depends="prepare, compile-main">
-		<javac srcdir="src/test" destdir="build/classes/test">
+		<javac srcdir="src/test" destdir="build/classes/test" source="1.5" target="1.5">
 			<classpath>
 				<fileset dir="lib">
 					<include name="*.jar"/>
@@ -52,17 +52,17 @@
 	</target>
 		
 	<target name="build" depends="clean, compile-main, api-docs">
-		<jar destfile="build/lib/JSnappy-0.9.jar" update="true">
+		<jar destfile="build/lib/JSnappy-0.9.1.jar" update="true">
 			<fileset dir="build/classes/main">
 				<include name="**" />
 			</fileset>
 		</jar>
-		<jar destfile="build/lib/JSnappy-0.9-src.jar" update="true">
+		<jar destfile="build/lib/JSnappy-0.9.1-src.jar" update="true">
 			<fileset dir="src/main">
 				<include name="**" />
 			</fileset>
 		</jar>
-		<jar destfile="build/lib/JSnappy-0.9-docs.jar" update="true">
+		<jar destfile="build/lib/JSnappy-0.9.1-docs.jar" update="true">
 			<fileset dir="build/api-docs">
 				<include name="**" />
 			</fileset>

@@ -36,7 +36,7 @@ import java.io.InputStream;
  */
 public class SnzInputStream extends FilterInputStream {
 
-	private boolean initialized = false;
+	boolean initialized = false;
 	private boolean eof = false;
 
 	private int blockSize;
@@ -44,6 +44,8 @@ public class SnzInputStream extends FilterInputStream {
 	private Buffer dbuffer;
 	private int dbufferIndex = 0;
 
+	private byte[] tmpBuffer = new byte[1];
+	
 	/**
 	 * Creates a new SnzInputStream, reading from the provided InputStream <code>in</code>.
 	 * @param in
@@ -70,28 +72,7 @@ public class SnzInputStream extends FilterInputStream {
 	@Override
 	public int read() throws IOException {
 		init();
-
-		if (eof) {
-			return -1;
-		}
-
-		if (dbuffer == null || dbufferIndex >= dbuffer.getLength()) {
-			int cLength = readVInt();
-			if (cLength == 0) {
-				eof = true;
-				return -1;
-			}
-			byte[] cbuffer = new byte[cLength];
-			int o = 0;
-			while(o < cLength) {
-				o += super.read(cbuffer, o, cbuffer.length - o);
-			}
-
-			dbuffer = SnappyDecompressor.decompress(cbuffer);
-			dbufferIndex = 0;
-		}
-
-		return dbuffer.getData()[dbufferIndex++] & 0xff;
+		return read(tmpBuffer) < 0 ? -1 : tmpBuffer[0] & 0xff;
 	}
 
 	/**
@@ -150,7 +131,7 @@ public class SnzInputStream extends FilterInputStream {
 	}
 
 
-	private void init() throws IOException {
+	void init() throws IOException {
 		if(!initialized) {
 			char c1 = (char) super.read();
 			char c2 = (char) super.read();
@@ -168,7 +149,7 @@ public class SnzInputStream extends FilterInputStream {
 	}
 
 
-	private int readVInt() throws IOException {
+	int readVInt() throws IOException {
 		int i, o = 0, vint = 0;
 		do {
 			i = super.read();

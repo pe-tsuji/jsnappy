@@ -16,6 +16,8 @@
 
 package de.jarnbjo.jsnappy;
 
+import java.util.Arrays;
+
 /**
  * This class provide utility methods for decompressing 
  * data blocks using the Snappy algorithm.
@@ -160,11 +162,17 @@ public class SnappyDecompressor {
 					targetIndex += l;
 				}
 				else {
-					while(l > 0) {
-						c = l > o ? o : l;
-						System.arraycopy(outBuffer, targetIndex - o, outBuffer, targetIndex, c);
-						targetIndex += c;
-						l -= c;
+					if(o == 1) {
+						Arrays.fill(outBuffer, targetIndex, targetIndex + l, outBuffer[targetIndex-1]);
+						targetIndex += l;
+					}
+					else {
+						while(l > 0) {
+							c = l > o ? o : l;
+							System.arraycopy(outBuffer, targetIndex - o, outBuffer, targetIndex, c);
+							targetIndex += c;
+							l -= c;
+						}
 					}
 				}
 				break;
@@ -196,11 +204,17 @@ public class SnappyDecompressor {
 					targetIndex += l;
 				}
 				else {
-					while(l > 0) {
-						c = l > o ? o : l;
-						System.arraycopy(outBuffer, targetIndex - o, outBuffer, targetIndex, c);
-						targetIndex += c;
-						l -= c;
+					if(o == 1) {
+						Arrays.fill(outBuffer, targetIndex, targetIndex + l, outBuffer[targetIndex-1]);
+						targetIndex += l;
+					}
+					else {
+						while(l > 0) {
+							c = l > o ? o : l;
+							System.arraycopy(outBuffer, targetIndex - o, outBuffer, targetIndex, c);
+							targetIndex += c;
+							l -= c;
+						}
 					}
 				}
 				break;
